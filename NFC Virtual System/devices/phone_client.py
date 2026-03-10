@@ -1,5 +1,10 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import socket
-from crypto import generate_response
+from core.crypto import generate_response
 
 HOST = "127.0.0.1"
 PORT = 65432
