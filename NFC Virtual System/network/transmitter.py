@@ -1,11 +1,11 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import time
 import socket
-import hmac
-import hashlib
-
-HOST = "127.0.0.1"
-PORT = 65432
-
-SECRET_KEY = b"supersecretkey"
+from core.config import HOST, PORT, SECRET_KEY
+from core.crypto import generate_hmac
 
 counter = 0
 
@@ -13,19 +13,20 @@ while True:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect((HOST, PORT))
 
-        challenge = client.recv(1024)  #1st step: receive challenge
+        challenge = client.recv(1024)
 
-        counter += 1 #Updated: increment counter
+        counter += 1
 
-        message = str(counter).encode() + challenge  #2nd step: create message
+        message = str(counter).encode() + challenge
+        response = generate_hmac(SECRET_KEY, message)
 
-        response = hmac.new(SECRET_KEY, message, hashlib.sha256).hexdigest()
-
-        payload = f"{counter}|{response}"  #3rd step: send counter + response
+        payload = f"{counter}|{response}"
         client.send(payload.encode())
 
-        result = client.recv(1024)  #4th step: receive result
+        result = client.recv(1024)
         print(result.decode())
+        
+    time.sleep(3)
 
 
 # import sys

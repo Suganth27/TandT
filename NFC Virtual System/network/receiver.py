@@ -1,78 +1,84 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import socket
 import time
-import hmac
-import hashlib
+from core.config import HOST, PORT, SECRET_KEY, RELAY_THRESHOLD
+from core.crypto import verify_hmac
+from core.protocol import generate_challenge
+from core.logger import log, log_metrics
 
-HOST = "127.0.0.1"
-PORT = 65432
+last_counter = {}
 
-SECRET_KEY = b"supersecretkey"
-
-last_counter = {}  #Updated: store last counter per client
-
-def generate_challenge():
-    return b"random_challenge"
-
-def verify_hmac(key, message, received_hmac):
-    computed = hmac.new(key, message, hashlib.sha256).hexdigest()
-    return computed == received_hmac
-
-def is_fresh(client_id, counter):  #Updated: replay protection function
+def is_fresh(client_id, counter):
     if client_id not in last_counter:
         last_counter[client_id] = counter
         return True
-
     if counter <= last_counter[client_id]:
         return False
-
     last_counter[client_id] = counter
     return True
 
-def reject(conn, reason):
+def reject(conn, reason, latency=0):
     conn.send(f"REJECTED: {reason}".encode())
+    log(f"REJECTED {reason} latency={latency}")
+    log_metrics(latency, reason.lower(), "rejected")
     conn.close()
 
-def accept(conn):
+def accept(conn, latency):
     conn.send(b"ACCESS GRANTED")
+    log(f"SUCCESS latency={latency}")
+    log_metrics(latency, "normal", "success")
     conn.close()
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
     server.bind((HOST, PORT))
     server.listen()
-
-    print("Server listening...")
+    print("Receiver running...")
 
     while True:
         conn, addr = server.accept()
 
         with conn:
-            print(f"Connected by {addr}")
+            print(f"Connected: {addr}")
 
-            challenge = generate_challenge()  #1st step: send challenge
+            challenge = generate_challenge()
+
+            start_time = time.time()
             conn.send(challenge)
 
-            data = conn.recv(1024).decode()  #2nd step: receive data
+            data = conn.recv(1024).decode()
+            end_time = time.time()
 
-            try:  #Expected format: counter|hmac
+            latency = end_time - start_time
+            print(f"Latency: {latency*1000:.2f} ms")
+
+            if latency > RELAY_THRESHOLD:
+                reject(conn, "RELAY ATTACK", latency)
+                continue
+
+            try:
                 counter_str, received_hmac = data.split("|")
                 counter = int(counter_str)
             except:
-                reject(conn, "INVALID FORMAT")
+                reject(conn, "FORMAT ERROR", latency)
                 continue
 
             client_id = addr[0]
 
-            if not is_fresh(client_id, counter):  #Updated: replay check
-                print("[ALERT] Replay attack detected")
-                reject(conn, "REPLAY ATTACK")
+            if not is_fresh(client_id, counter):
+                reject(conn, "REPLAY ATTACK", latency)
                 continue
 
-            message = str(counter).encode() + challenge  #3rd step: verify HMAC
+            message = str(counter).encode() + challenge
 
             if verify_hmac(SECRET_KEY, message, received_hmac):
-                accept(conn)
+                accept(conn, latency)
             else:
-                reject(conn, "INVALID HMAC")
+                reject(conn, "INVALID HMAC", latency)
+            
+            time.sleep(3)
 
 
 # import sys

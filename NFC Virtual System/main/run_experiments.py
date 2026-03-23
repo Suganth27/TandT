@@ -1,33 +1,44 @@
-import subprocess
-import time
-import os
+import argparse
 
-ROOT = os.path.dirname(os.path.dirname(__file__))
+parser = argparse.ArgumentParser()
+parser.add_argument("--mode", choices=["normal", "replay", "relay"])
+args = parser.parse_args()
 
-reader_path = os.path.join(ROOT, "devices", "reader_server.py")
-phone_path = os.path.join(ROOT, "devices", "phone_client.py")
+print(f"Running mode: {args.mode}")
 
-print("Starting reader server...")
 
-reader = subprocess.Popen(["python", reader_path])
 
-time.sleep(3)  # give server time to start
 
-print("Running authentication experiments...")
+# import subprocess
+# import time
+# import os
 
-for i in range(20):
+# ROOT = os.path.dirname(os.path.dirname(__file__))
 
-    print("Authentication run:", i + 1)
+# reader_path = os.path.join(ROOT, "devices", "reader_server.py")
+# phone_path = os.path.join(ROOT, "devices", "phone_client.py")
 
-    try:
-        subprocess.run(["python", phone_path], check=True)
-    except subprocess.CalledProcessError:
-        print("Phone connection failed, retrying...")
-        time.sleep(2)
-        continue
+# print("Starting reader server...")
 
-    time.sleep(1)
+# reader = subprocess.Popen(["python", reader_path])
 
-print("Experiments completed.")
+# time.sleep(3)  # give server time to start
 
-reader.terminate()
+# print("Running authentication experiments...")
+
+# for i in range(20):
+
+#     print("Authentication run:", i + 1)
+
+#     try:
+#         subprocess.run(["python", phone_path], check=True)
+#     except subprocess.CalledProcessError:
+#         print("Phone connection failed, retrying...")
+#         time.sleep(2)
+#         continue
+
+#     time.sleep(1)
+
+# print("Experiments completed.")
+
+# reader.terminate()

