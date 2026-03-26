@@ -1,4 +1,0 @@
-HOST = "127.0.0.1"
-PORT = 65432
-SECRET_KEY = b"supersecretkey"
-RELAY_THRESHOLD = 0.15
