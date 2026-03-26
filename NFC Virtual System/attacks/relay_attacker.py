@@ -10,7 +10,7 @@ while True:  #for _ in range(10): for exact 10 samples
 
         challenge = client.recv(1024)
 
-        time.sleep(3)  # simulate relay delay
+        time.sleep(3)  #simulate relay delay
 
         payload = "1|fakehmac"
         client.send(payload.encode())
@@ -45,7 +45,7 @@ while True:  #for _ in range(10): for exact 10 samples
 
 #     print("\nRelay attacker forwarding challenge:", challenge)
 
-#     time.sleep(3)   # artificial relay delay
+#     time.sleep(3)   #artificial relay delay
 
 #     counter += 1
 

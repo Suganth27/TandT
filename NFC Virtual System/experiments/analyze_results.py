@@ -1,13 +1,16 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+#VERY IMPORTANT: CLEAR OLD FIGURES
+plt.close('all')
+
+#MANUAL CLEANING (handles corrupted CSV)
 clean_rows = []
 
 with open("logs/latency_results.csv", "r") as f:
     for line in f:
         parts = line.strip().split(",")
 
-        # keep only valid rows
         if len(parts) == 3:
             try:
                 latency = float(parts[0])
@@ -17,10 +20,10 @@ with open("logs/latency_results.csv", "r") as f:
             except:
                 continue
 
-# convert to dataframe
+#create dataframe
 df = pd.DataFrame(clean_rows, columns=["latency", "attack_type", "result"])
 
-# 🔴 HANDLE EMPTY CASE
+#HANDLE EMPTY DATA
 if df.empty:
     print("❌ No valid data found in CSV. File is corrupted.")
     exit()
@@ -28,29 +31,36 @@ if df.empty:
 print("Cleaned Data:")
 print(df.head())
 
-# average latency
+#COMPUTATIONS
 avg_latency = df.groupby("attack_type")["latency"].mean()
-
-# detection counts
 counts = df.groupby(["attack_type", "result"]).size().unstack(fill_value=0)
 
 print("\nAverage Latency:\n", avg_latency)
 print("\nDetection Summary:\n", counts)
 
-# plot latency
+#CREATE NEW FIGURE (ENSURES FRESH WINDOW)
+plt.figure(figsize=(10, 4))
+
+#LATENCY GRAPH
+plt.subplot(1, 2, 1)
 avg_latency.plot(kind="bar")
 plt.title("Average Latency by Attack Type")
 plt.ylabel("Latency (seconds)")
 plt.xticks(rotation=0)
-plt.tight_layout()
-plt.show()
 
-# plot detection
+#DETECTION GRAPH
+plt.subplot(1, 2, 2)
 counts.plot(kind="bar")
 plt.title("Attack Detection Results")
 plt.ylabel("Count")
 plt.xticks(rotation=0)
+
 plt.tight_layout()
+
+#SAVE IMAGE
+plt.savefig("logs/final_output.png")
+
+#SHOW ONLY THIS GRAPH
 plt.show()
 
 
