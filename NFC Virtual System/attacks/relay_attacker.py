@@ -4,17 +4,20 @@ import time
 HOST = "127.0.0.1"
 PORT = 65432
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-    client.connect((HOST, PORT))
+while True:  #for _ in range(10): for exact 10 samples
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect((HOST, PORT))
 
-    challenge = client.recv(1024)
+        challenge = client.recv(1024)
 
-    time.sleep(0.3)  # simulate relay delay
+        time.sleep(3)  # simulate relay delay
 
-    payload = "1|fakehmac"
-    client.send(payload.encode())
+        payload = "1|fakehmac"
+        client.send(payload.encode())
 
-    print(client.recv(1024).decode())
+        result = client.recv(1024)
+        print("[RELAY]", result.decode())
+
     time.sleep(3)
 
 

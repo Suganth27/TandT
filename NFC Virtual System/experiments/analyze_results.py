@@ -1,15 +1,57 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("logs/latency_results.csv", on_bad_lines='skip')
+clean_rows = []
 
-df.groupby("attack_type")["latency"].mean().plot(kind="bar")
+with open("logs/latency_results.csv", "r") as f:
+    for line in f:
+        parts = line.strip().split(",")
 
-plt.title("Latency by Attack Type")
+        # keep only valid rows
+        if len(parts) == 3:
+            try:
+                latency = float(parts[0])
+                attack = parts[1]
+                result = parts[2]
+                clean_rows.append([latency, attack, result])
+            except:
+                continue
+
+# convert to dataframe
+df = pd.DataFrame(clean_rows, columns=["latency", "attack_type", "result"])
+
+# 🔴 HANDLE EMPTY CASE
+if df.empty:
+    print("❌ No valid data found in CSV. File is corrupted.")
+    exit()
+
+print("Cleaned Data:")
+print(df.head())
+
+# average latency
+avg_latency = df.groupby("attack_type")["latency"].mean()
+
+# detection counts
+counts = df.groupby(["attack_type", "result"]).size().unstack(fill_value=0)
+
+print("\nAverage Latency:\n", avg_latency)
+print("\nDetection Summary:\n", counts)
+
+# plot latency
+avg_latency.plot(kind="bar")
+plt.title("Average Latency by Attack Type")
 plt.ylabel("Latency (seconds)")
-plt.savefig("logs/latency.png")
+plt.xticks(rotation=0)
+plt.tight_layout()
 plt.show()
 
+# plot detection
+counts.plot(kind="bar")
+plt.title("Attack Detection Results")
+plt.ylabel("Count")
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()
 
 
 
