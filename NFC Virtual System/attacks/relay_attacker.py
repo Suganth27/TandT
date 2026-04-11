@@ -1,58 +1,47 @@
 import socket
 import time
 
-HOST = "127.0.0.1"
-PORT = 65432
+from core.config import HOST, PORT, DELAY_RELAY
 
-while True:  #for _ in range(10): for exact 10 samples
+while True:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect((HOST, PORT))
 
-        challenge = client.recv(1024)
+        challenge = client.recv(1024).decode()
 
-        time.sleep(3)  #simulate relay delay
+        time.sleep(DELAY_RELAY)
 
         payload = "1|fakehmac"
         client.send(payload.encode())
 
-        result = client.recv(1024)
-        print("[RELAY]", result.decode())
+        result = client.recv(1024).decode()
+        print("[RELAY]", result)
 
     time.sleep(3)
 
 
-# import sys
-# import os
 
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
 
 # import socket
 # import time
-# from core.crypto import generate_response
 
 # HOST = "127.0.0.1"
 # PORT = 65432
 
-# counter = 0
+# while True:  #for _ in range(10): for exact 10 samples
+#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+#         client.connect((HOST, PORT))
 
-# while True:
+#         challenge = client.recv(1024)
 
-#     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     client.connect((HOST, PORT))
+#         time.sleep(3)  #simulate relay delay
 
-#     challenge = client.recv(1024).decode()
-#     challenge = int(challenge)
+#         payload = "1|fakehmac"
+#         client.send(payload.encode())
 
-#     print("\nRelay attacker forwarding challenge:", challenge)
+#         result = client.recv(1024)
+#         print("[RELAY]", result.decode())
 
-#     time.sleep(3)   #artificial relay delay
-
-#     counter += 1
-
-#     response = generate_response(counter, challenge)
-
-#     message = f"{counter},{response}"
-
-#     client.send(message.encode())
-
-#     client.close()
+#     time.sleep(3)

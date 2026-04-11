@@ -1,63 +1,61 @@
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import time
 import socket
-from core.config import HOST, PORT, SECRET_KEY
+import time
+
+from core.config import HOST, PORT, SECRET_KEY, DELAY_NORMAL
 from core.crypto import generate_hmac
 
 counter = 0
 
 while True:
+    counter += 1
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect((HOST, PORT))
 
-        challenge = client.recv(1024)
+        challenge = client.recv(1024).decode()
 
-        counter += 1
-
-        message = str(counter).encode() + challenge
+        message = str(counter) + challenge
         response = generate_hmac(SECRET_KEY, message)
 
         payload = f"{counter}|{response}"
+
+        time.sleep(DELAY_NORMAL)
+
         client.send(payload.encode())
 
-        result = client.recv(1024)
-        print(result.decode())
-        
+        result = client.recv(1024).decode()
+        print("[TRANSMITTER]", result)
+
     time.sleep(3)
+
 
 
 # import sys
 # import os
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+# import time
 # import socket
-# from core.crypto import generate_response
-
-# HOST = "127.0.0.1"
-# PORT = 65432
+# from core.config import HOST, PORT, SECRET_KEY
+# from core.crypto import generate_hmac
 
 # counter = 0
 
-# client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# client.connect((HOST, PORT))
+# while True:
+#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+#         client.connect((HOST, PORT))
 
-# challenge = client.recv(1024).decode()
-# challenge = int(challenge)
+#         challenge = client.recv(1024)
 
-# print("Phone received challenge:", challenge)
+#         counter += 1
 
-# counter += 1
+#         message = str(counter).encode() + challenge
+#         response = generate_hmac(SECRET_KEY, message)
 
-# response = generate_response(counter, challenge)
+#         payload = f"{counter}|{response}"
+#         client.send(payload.encode())
 
-# message = f"{counter},{response}"
-
-# client.send(message.encode())
-
-# print("Phone sent response")
-
-# client.close()
+#         result = client.recv(1024)
+#         print(result.decode())
+        
+#     time.sleep(3)
