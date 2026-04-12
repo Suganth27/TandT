@@ -2,7 +2,7 @@ import socket
 import time
 import os
 
-from core.config import HOST, PORT, SECRET_KEY, DELAY_NORMAL
+from core.config import HOST, PORT, SECRET_KEY
 from core.crypto import generate_hmac
 
 COUNTER_FILE = "logs/counter.txt"
@@ -18,63 +18,29 @@ def save_counter(value):
         f.write(str(value))
 
 
-counter = load_counter()
+def run_once():
+    counter = load_counter() + 1
+    save_counter(counter)
 
-while True:
-    counter += 1
-    save_counter(counter)  # persist counter
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect((HOST, PORT))
 
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            client.connect((HOST, PORT))
+        challenge = client.recv(1024).decode()
+        print("[BLE] Connecting to receiver...")
+        time.sleep(0.01)
+        print("[BLE] Connected")
 
-            challenge = client.recv(1024).decode()
+        message = str(counter) + challenge
+        response = generate_hmac(SECRET_KEY, message)
 
-            message = str(counter) + challenge
-            response = generate_hmac(SECRET_KEY, message)
+        payload = f"{counter}|{response}"
 
-            payload = f"{counter}|{response}"
+        client.send(payload.encode())
 
-            time.sleep(DELAY_NORMAL)
-
-            client.send(payload.encode())
-
-            result = client.recv(1024).decode()
-            print("[TRANSMITTER]", result)
-
-    except Exception as e:
-        print("[ERROR]", e)
-
-    time.sleep(3)
+        result = client.recv(1024).decode()
+        print("[NORMAL]", result)
+        print("[BLE] Disconnecting...\n")
 
 
-
-# import sys
-# import os
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# import time
-# import socket
-# from core.config import HOST, PORT, SECRET_KEY
-# from core.crypto import generate_hmac
-
-# counter = 0
-
-# while True:
-#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-#         client.connect((HOST, PORT))
-
-#         challenge = client.recv(1024)
-
-#         counter += 1
-
-#         message = str(counter).encode() + challenge
-#         response = generate_hmac(SECRET_KEY, message)
-
-#         payload = f"{counter}|{response}"
-#         client.send(payload.encode())
-
-#         result = client.recv(1024)
-#         print(result.decode())
-        
-#     time.sleep(3)
+if __name__ == "__main__":
+    run_once()

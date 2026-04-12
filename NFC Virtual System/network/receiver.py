@@ -10,6 +10,7 @@ last_counter = 0
 
 
 def handle_client(conn):
+    print("[BLE] Device connected")
     global last_counter
 
     # 🔴 STEP 1: generate challenge
@@ -28,6 +29,7 @@ def handle_client(conn):
         counter = int(counter)
     except:
         conn.send(b"INVALID FORMAT")
+        print("[BLE] Device disconnected\n")
         return
 
     message = str(counter) + challenge
@@ -37,12 +39,14 @@ def handle_client(conn):
     if latency > LATENCY_THRESHOLD:
         conn.send(b"RELAY DETECTED")
         log_metrics(latency, "relay", "rejected")
+        print("[BLE] Device disconnected\n")
         return
 
     # 🔴 REPLAY ATTACK (counter reuse)
     if counter <= last_counter:
         conn.send(b"REPLAY DETECTED")
         log_metrics(latency, "replay", "rejected")
+        print("[BLE] Device disconnected\n")
         return
 
     # 🔴 VALID AUTHENTICATION
@@ -50,6 +54,7 @@ def handle_client(conn):
         last_counter = counter
         conn.send(b"SUCCESS")
         log_metrics(latency, "normal", "success")
+        print("[BLE] Device disconnected\n")
         return
 
     # 🔴 INVALID HMAC → classify attack type

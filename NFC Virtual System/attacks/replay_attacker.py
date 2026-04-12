@@ -3,41 +3,22 @@ import time
 
 from core.config import HOST, PORT
 
-payload = "1|fakehmac"
-
-while True:
+def run_once():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect((HOST, PORT))
+        print("[BLE] Connecting (REPLAY)...")
+        time.sleep(0.01)
+        print("[BLE] Connected")
 
         client.recv(1024)
 
+        payload = "1|fakehmac"
         client.send(payload.encode())
 
         result = client.recv(1024).decode()
         print("[REPLAY]", result)
-
-    time.sleep(1)
-
+        print("[BLE] Disconnecting (REPLAY)\n")
 
 
-# import socket
-# import time
-
-# HOST = "127.0.0.1"
-# PORT = 65432
-
-# #simulate replay with same counter
-# payload = "1|fakehmac"
-
-# while True:  #for _ in range(10): for exact 10 samples
-#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-#         client.connect((HOST, PORT))
-
-#         client.recv(1024)  #receive challenge
-
-#         client.send(payload.encode())
-
-#         result = client.recv(1024)
-#         print("[REPLAY]", result.decode())
-
-#     time.sleep(3)  #delay to avoid spam
+if __name__ == "__main__":
+    run_once()

@@ -2,7 +2,7 @@ import subprocess
 import time
 import random
 
-DURATION = 30  # total run time
+DURATION = 3600  # total experiment time in seconds
 
 ATTACKS = {
     "normal": ["python", "-m", "network.transmitter"],
@@ -14,14 +14,9 @@ ATTACKS = {
 }
 
 
-def run_phase(mode, duration=5):
-    print(f"\n[RUNNING] {mode.upper()}")
-
+def run_once(mode):
     proc = subprocess.Popen(ATTACKS[mode])
-
-    time.sleep(duration)
-
-    proc.terminate()
+    proc.wait()  # wait for exactly one execution
 
 
 def main():
@@ -29,19 +24,21 @@ def main():
     receiver = subprocess.Popen(["python", "-m", "network.receiver"])
     time.sleep(2)
 
-    start = time.time()
+    print("\nRunning random time-based experiment...\n")
+
+    start_time = time.time()
 
     modes = list(ATTACKS.keys())
 
-    # 🔴 FORCE EACH ATTACK AT LEAST ONCE
-    random.shuffle(modes)
-    for mode in modes:
-        run_phase(mode, 5)
-
-    # 🔴 THEN RANDOM EXECUTION
-    while time.time() - start < DURATION:
+    while time.time() - start_time < DURATION:
         mode = random.choice(modes)
-        run_phase(mode, 5)
+
+        print(f"[RUNNING] {mode.upper()}")
+
+        run_once(mode)
+
+        # random gap between requests (controls distribution)
+        time.sleep(random.uniform(0.5, 1.5))
 
     receiver.terminate()
     print("\nExperiment completed.")
@@ -49,52 +46,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-# import subprocess
-# import time
-# import random
-
-# DURATION = 3600  # seconds (change anytime)
-
-# def run_once(mode):
-#     if mode == "normal":
-#         return subprocess.Popen(["python", "-m", "network.transmitter"])
-    
-#     elif mode == "replay":
-#         return subprocess.Popen(["python", "-m", "attacks.replay_attacker"])
-    
-#     elif mode == "relay":
-#         return subprocess.Popen(["python", "-m", "attacks.relay_attacker"])
-
-
-# def main():
-#     print("Starting Receiver...")
-#     receiver = subprocess.Popen(["python", "-m", "network.receiver"])
-#     time.sleep(2)
-
-#     start_time = time.time()
-
-#     print("\nRunning mixed experiments...")
-
-#     while time.time() - start_time < DURATION:
-#         mode = random.choice(["normal", "replay", "relay"])
-
-#         print(f"\n[RUNNING] {mode.upper()}")
-
-#         proc = run_once(mode)
-
-#         # let it run briefly
-#         time.sleep(3)
-
-#         proc.terminate()
-
-#     receiver.terminate()
-#     print("\nExperiment completed.")
-
-
-# if __name__ == "__main__":
-#     main()
