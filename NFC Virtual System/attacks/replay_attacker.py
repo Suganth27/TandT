@@ -16,7 +16,7 @@ while True:
         result = client.recv(1024).decode()
         print("[REPLAY]", result)
 
-    time.sleep(3)
+    time.sleep(1)
 
 
 

@@ -15,4 +15,4 @@ while True:
         result = client.recv(1024).decode()
         print("[IMPERSONATION]", result)
 
-    time.sleep(3)
+    time.sleep(1)

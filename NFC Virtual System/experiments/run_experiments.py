@@ -2,7 +2,7 @@ import subprocess
 import time
 import random
 
-DURATION = 60  # total run time
+DURATION = 30  # total run time
 
 ATTACKS = {
     "normal": ["python", "-m", "network.transmitter"],
@@ -41,7 +41,7 @@ def main():
     # 🔴 THEN RANDOM EXECUTION
     while time.time() - start < DURATION:
         mode = random.choice(modes)
-        run_phase(mode, random.randint(3, 6))
+        run_phase(mode, 5)
 
     receiver.terminate()
     print("\nExperiment completed.")

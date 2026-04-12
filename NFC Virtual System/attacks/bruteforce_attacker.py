@@ -4,7 +4,7 @@ import time
 from core.config import HOST, PORT
 
 while True:
-    for i in range(10):
+    for i in range(3):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((HOST, PORT))
 
@@ -16,6 +16,6 @@ while True:
             result = client.recv(1024).decode()
             print("[BRUTEFORCE]", result)
 
-        time.sleep(0.2)
+        time.sleep(1)
 
     time.sleep(2)

@@ -19,4 +19,4 @@ while True:
         result = client.recv(1024).decode()
         print("[MITM]", result)
 
-    time.sleep(2)
+    time.sleep(1)
