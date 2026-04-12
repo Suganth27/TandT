@@ -1,118 +1,110 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-#VERY IMPORTANT: CLEAR OLD FIGURES
+# 🔴 CLEAR OLD FIGURES
 plt.close('all')
 
-#MANUAL CLEANING (handles corrupted CSV)
-clean_rows = []
+# 🔴 READ CSV (no header)
+df = pd.read_csv(
+    "logs/latency_results.csv",
+    header=None,
+    names=["latency", "attack_type", "result"]
+)
 
-with open("logs/latency_results.csv", "r") as f:
-    for line in f:
-        parts = line.strip().split(",")
+# 🔴 CLEAN VALUES
+df["latency"] = pd.to_numeric(df["latency"], errors="coerce")
+df = df.dropna()
 
-        if len(parts) == 3:
-            try:
-                latency = float(parts[0])
-                attack = parts[1]
-                result = parts[2]
-                clean_rows.append([latency, attack, result])
-            except:
-                continue
+# 🔴 NORMALIZE LABELS (VERY IMPORTANT)
+df["attack_type"] = df["attack_type"].str.replace(" attack", "")
 
-#create dataframe
-df = pd.DataFrame(clean_rows, columns=["latency", "attack_type", "result"])
-
-#HANDLE EMPTY DATA
-if df.empty:
-    print("❌ No valid data found in CSV. File is corrupted.")
-    exit()
-
-print("Cleaned Data:")
-print(df.head())
-
-#COMPUTATIONS
+# 🔴 COMPUTE
 avg_latency = df.groupby("attack_type")["latency"].mean()
 counts = df.groupby(["attack_type", "result"]).size().unstack(fill_value=0)
 
 print("\nAverage Latency:\n", avg_latency)
 print("\nDetection Summary:\n", counts)
 
-#CREATE NEW FIGURE (ENSURES FRESH WINDOW)
-plt.figure(figsize=(10, 4))
+# 🔴 SINGLE FIGURE
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 
-#LATENCY GRAPH
-plt.subplot(1, 2, 1)
-avg_latency.plot(kind="bar")
-plt.title("Average Latency by Attack Type")
-plt.ylabel("Latency (seconds)")
-plt.xticks(rotation=0)
+avg_latency.plot(kind="bar", ax=axes[0])
+axes[0].set_title("Average Latency")
+axes[0].set_ylabel("Seconds")
 
-#DETECTION GRAPH
-plt.subplot(1, 2, 2)
-counts.plot(kind="bar")
-plt.title("Attack Detection Results")
-plt.ylabel("Count")
-plt.xticks(rotation=0)
+counts.plot(kind="bar", ax=axes[1])
+axes[1].set_title("Detection Results")
+axes[1].set_ylabel("Count")
 
 plt.tight_layout()
-
-#SAVE IMAGE
 plt.savefig("logs/final_output.png")
-
-#SHOW ONLY THIS GRAPH
 plt.show()
 
 
 
-# import csv
+
+
+# import pandas as pd
 # import matplotlib.pyplot as plt
-# import os
 
-# ROOT = os.path.dirname(os.path.dirname(__file__))
-# log_file = os.path.join(ROOT, "logs", "latency_results.csv")
+# #VERY IMPORTANT: CLEAR OLD FIGURES
+# plt.close('all')
 
-# latencies = []
+# #MANUAL CLEANING (handles corrupted CSV)
+# clean_rows = []
 
-# with open(log_file) as f:
-#     reader = csv.reader(f)
+# with open("logs/latency_results.csv", "r") as f:
+#     for line in f:
+#         parts = line.strip().split(",")
 
-#     for row in reader:
-#         if len(row) < 2:
-#             continue
+#         if len(parts) == 3:
+#             try:
+#                 latency = float(parts[0])
+#                 attack = parts[1]
+#                 result = parts[2]
+#                 clean_rows.append([latency, attack, result])
+#             except:
+#                 continue
 
-#         latency = float(row[1])
-#         latencies.append(latency)
+# #create dataframe
+# df = pd.DataFrame(clean_rows, columns=["latency", "attack_type", "result"])
 
-# print("Latencies collected:", latencies)
+# #HANDLE EMPTY DATA
+# if df.empty:
+#     print("❌ No valid data found in CSV. File is corrupted.")
+#     exit()
 
-# normal = []
-# relay = []
+# print("Cleaned Data:")
+# print(df.head())
 
-# for l in latencies:
-#     if l < 1:
-#         normal.append(l)
-#     else:
-#         relay.append(l)
+# #COMPUTATIONS
+# avg_latency = df.groupby("attack_type")["latency"].mean()
+# counts = df.groupby(["attack_type", "result"]).size().unstack(fill_value=0)
 
-# print("Total samples:", len(latencies))
-# print("Normal samples:", len(normal))
-# print("Relay samples:", len(relay))
+# print("\nAverage Latency:\n", avg_latency)
+# print("\nDetection Summary:\n", counts)
 
-# if normal:
-#     print("Average normal latency:", sum(normal)/len(normal))
+# #CREATE NEW FIGURE (ENSURES FRESH WINDOW)
+# plt.figure(figsize=(10, 4))
 
-# if relay:
-#     print("Average relay latency:", sum(relay)/len(relay))
-
-# plt.figure()
-
-# plt.scatter(range(len(normal)), normal, label="Normal Authentication")
-# plt.scatter(range(len(relay)), relay, label="Relay Attack")
-
-# plt.xlabel("Experiment Number")
+# #LATENCY GRAPH
+# plt.subplot(1, 2, 1)
+# avg_latency.plot(kind="bar")
+# plt.title("Average Latency by Attack Type")
 # plt.ylabel("Latency (seconds)")
-# plt.title("Authentication Latency Results")
-# plt.legend()
+# plt.xticks(rotation=0)
 
+# #DETECTION GRAPH
+# plt.subplot(1, 2, 2)
+# counts.plot(kind="bar")
+# plt.title("Attack Detection Results")
+# plt.ylabel("Count")
+# plt.xticks(rotation=0)
+
+# plt.tight_layout()
+
+# #SAVE IMAGE
+# plt.savefig("logs/final_output.png")
+
+# #SHOW ONLY THIS GRAPH
 # plt.show()
